@@ -86,7 +86,7 @@ async def crear_visualizacion_rio(emojis: str) -> str:
         # TODO: Guardar imagen como artifact cuando tengamos acceso al context
         # Por ahora solo confirmamos que la imagen se generó
 
-        return f"✨ He generado tu visualización del río emocional. La imagen muestra el flujo poético de tus emociones: {emojis}\n\n(Imagen de {len(imagen_bytes):,} bytes generada exitosamente)"
+        return f"✨ He generado tu visualización de tú río emocional. La imagen muestra el flujo poético de tus emociones: {emojis}\n\n(Imagen de {len(imagen_bytes):,} bytes generada exitosamente)"
 
     except Exception as e:
         return f"⚠️ Hubo un problema al crear la visualización: {str(e)}"
@@ -137,7 +137,7 @@ async def crear_imagen_rio_emocional() -> str:
         # Limpiar la interpretación después de usarla
         _ultima_interpretacion = ""
 
-        return f"✨ He creado tu visualización del río emocional.\n\n📍 Imagen guardada en: {ruta_imagen}\n\nLa imagen traduce tu río emocional en un trazo visual dinámico usando matemáticas y arte."
+        return f"✨ He creado tu visualización de tú río emocional.\n\n📍 Imagen guardada en: {ruta_imagen}\n\nLa imagen traduce tu río emocional en un trazo visual dinámico usando matemáticas y arte."
 
     except Exception as e:
         return f"⚠️ Hubo un problema al crear la visualización: {str(e)}"

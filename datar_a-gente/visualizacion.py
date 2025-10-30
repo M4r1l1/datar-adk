@@ -2,6 +2,9 @@
 Herramienta para generar visualizaciones del río emocional
 """
 import io
+import os
+from datetime import datetime
+from pathlib import Path as FilePath
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -171,3 +174,169 @@ async def crear_visualizacion(emojis: str) -> str:
 
     except Exception as e:
         return f"⚠️ Hubo un problema al crear la visualización: {str(e)}"
+
+
+def interpretar_texto_a_parametros(texto: str) -> dict:
+    """
+    Interpreta un texto de manera abstracta y lo convierte en parámetros matemáticos
+
+    Args:
+        texto: El texto a interpretar
+
+    Returns:
+        dict: Diccionario con parámetros matemáticos interpretados
+    """
+    # Análisis básico del texto
+    longitud = len(texto)
+    vocales = sum(1 for c in texto.lower() if c in 'aeiouáéíóú')
+    consonantes = sum(1 for c in texto.lower() if c.isalpha() and c not in 'aeiouáéíóú')
+    espacios = texto.count(' ')
+    palabras = len(texto.split())
+
+    # Calcular "intensidad emocional" basada en puntuación
+    signos_exclamacion = texto.count('!')
+    signos_pregunta = texto.count('?')
+    signos_puntos = texto.count('.')
+
+    # Crear semilla única basada en el texto para reproducibilidad
+    semilla = sum(ord(c) for c in texto) % 10000
+
+    return {
+        'longitud': longitud,
+        'vocales': vocales,
+        'consonantes': consonantes,
+        'espacios': espacios,
+        'palabras': palabras,
+        'intensidad': signos_exclamacion + signos_pregunta * 0.8,
+        'calma': signos_puntos * 0.5,
+        'frecuencia_onda': max(1, vocales / 5),  # Más vocales = más ondas
+        'amplitud_onda': max(0.1, consonantes / 10),  # Más consonantes = más amplitud
+        'num_puntos': max(100, longitud * 10),  # Más texto = más puntos
+        'semilla': semilla,
+    }
+
+
+def generar_puntos_numpy(parametros: dict) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Genera puntos usando NumPy basándose en los parámetros interpretados
+
+    Args:
+        parametros: Diccionario con parámetros matemáticos
+
+    Returns:
+        tuple: (puntos_x, puntos_y) arrays de NumPy con coordenadas
+    """
+    # Configurar semilla para reproducibilidad
+    np.random.seed(parametros['semilla'])
+
+    # Generar puntos base
+    num_puntos = parametros['num_puntos']
+    t = np.linspace(0, parametros['palabras'] * np.pi, num_puntos)
+
+    # Crear onda principal basada en vocales (frecuencia)
+    onda_principal = np.sin(parametros['frecuencia_onda'] * t)
+
+    # Agregar onda secundaria basada en consonantes (amplitud)
+    onda_secundaria = np.cos(parametros['amplitud_onda'] * t * 1.5)
+
+    # Combinar ondas con pesos emocionales
+    intensidad = parametros.get('intensidad', 1)
+    calma = parametros.get('calma', 0.5)
+
+    # Coordenadas X: progresión lineal con variación
+    x = np.linspace(0, 800, num_puntos)
+
+    # Coordenadas Y: combinación de ondas con interpretación emocional
+    y = 300 + (onda_principal * 100 * parametros['amplitud_onda'] +
+               onda_secundaria * 50 * intensidad +
+               np.random.randn(num_puntos) * 10 * (1 - calma))
+
+    return x, y
+
+
+def generar_imagen_texto(texto: str) -> Image.Image:
+    """
+    Genera una imagen interpretativa del texto usando Pillow
+
+    Args:
+        texto: El texto a visualizar
+
+    Returns:
+        Image: Imagen PIL generada
+    """
+    # Interpretar el texto
+    parametros = interpretar_texto_a_parametros(texto)
+
+    # Generar puntos con NumPy
+    x_points, y_points = generar_puntos_numpy(parametros)
+
+    # Crear canvas
+    width, height = 900, 600
+    imagen = Image.new('RGB', (width, height), color='#F5F5F5')
+    draw = ImageDraw.Draw(imagen)
+
+    # Título
+    titulo = "Trazo del Pensamiento"
+    draw.text((width // 2, 30), titulo, fill='#2C3E50', anchor='mm')
+
+    # Determinar color basado en la "intensidad emocional"
+    intensidad = parametros.get('intensidad', 0)
+    if intensidad > 2:
+        color_trazo = '#FF4500'  # Rojo intenso
+    elif intensidad > 1:
+        color_trazo = '#FFD700'  # Amarillo dorado
+    else:
+        color_trazo = '#4682B4'  # Azul sereno
+
+    # Ajustar coordenadas y al canvas
+    y_points = np.clip(y_points, 50, height - 50)
+
+    # Dibujar el trazo conectando los puntos
+    puntos = list(zip(x_points.astype(int), y_points.astype(int)))
+
+    # Dibujar línea principal
+    for i in range(len(puntos) - 1):
+        draw.line([puntos[i], puntos[i + 1]], fill=color_trazo, width=3)
+
+    # Agregar puntos de énfasis cada cierto intervalo
+    intervalo = len(puntos) // min(10, parametros['palabras'])
+    if intervalo > 0:
+        for i in range(0, len(puntos), intervalo):
+            x, y = puntos[i]
+            draw.ellipse([x-5, y-5, x+5, y+5], fill=color_trazo, outline='#2C3E50')
+
+    # Información del análisis en la parte inferior
+    info = f"{parametros['palabras']} palabras | {parametros['vocales']} vocales | {parametros['consonantes']} consonantes"
+    draw.text((width // 2, height - 20), info, fill='#555', anchor='mm')
+
+    return imagen
+
+
+def guardar_imagen_texto(texto: str) -> str:
+    """
+    Genera y guarda una imagen interpretativa del texto
+
+    Args:
+        texto: El texto a visualizar
+
+    Returns:
+        str: Ruta donde se guardó la imagen
+    """
+    # Generar la imagen
+    imagen = generar_imagen_texto(texto)
+
+    # Crear nombre de archivo único
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nombre_archivo = f"trazo_{timestamp}.png"
+
+    # Determinar ruta de guardado
+    proyecto_root = FilePath(__file__).parent.parent
+    carpeta_imagenes = proyecto_root / "imagenes_generadas"
+    carpeta_imagenes.mkdir(exist_ok=True)
+
+    ruta_completa = carpeta_imagenes / nombre_archivo
+
+    # Guardar imagen
+    imagen.save(ruta_completa, 'PNG')
+
+    return str(ruta_completa)

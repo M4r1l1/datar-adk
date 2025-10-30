@@ -176,6 +176,9 @@ async def crear_visualizacion(emojis: str) -> str:
         return f"⚠️ Hubo un problema al crear la visualización: {str(e)}"
 
 
+#---- Aquí empezó la prueba usando Numpy/Pillow  ----#
+#---- Aquí empezó la prueba usando Numpy/Pillow  ----#
+#---- Aquí empezó la prueba usando Numpy/Pillow  ----#
 def interpretar_texto_a_parametros(texto: str) -> dict:
     """
     Interpreta un texto de manera abstracta y lo convierte en parámetros matemáticos
@@ -254,6 +257,8 @@ def generar_puntos_numpy(parametros: dict) -> tuple[np.ndarray, np.ndarray]:
     return x, y
 
 
+
+
 def generar_imagen_texto(texto: str) -> Image.Image:
     """
     Genera una imagen interpretativa del texto usando Pillow
@@ -271,22 +276,22 @@ def generar_imagen_texto(texto: str) -> Image.Image:
     x_points, y_points = generar_puntos_numpy(parametros)
 
     # Crear canvas
-    width, height = 900, 600
+    width, height = 1000, 1000
     imagen = Image.new('RGB', (width, height), color='#F5F5F5')
     draw = ImageDraw.Draw(imagen)
 
     # Título
     titulo = "Trazo del Pensamiento"
-    draw.text((width // 2, 30), titulo, fill='#2C3E50', anchor='mm')
+    draw.text((width // 2, 30), titulo, fill="#000000", anchor='mm')
 
     # Determinar color basado en la "intensidad emocional"
     intensidad = parametros.get('intensidad', 0)
     if intensidad > 2:
-        color_trazo = '#FF4500'  # Rojo intenso
+        color_trazo = "#000000"  # Negro intenso
     elif intensidad > 1:
-        color_trazo = '#FFD700'  # Amarillo dorado
+        color_trazo = "#00000051"  # Negro opaco
     else:
-        color_trazo = '#4682B4'  # Azul sereno
+        color_trazo = "#00000010"  # Negro transparente
 
     # Ajustar coordenadas y al canvas
     y_points = np.clip(y_points, 50, height - 50)
@@ -310,6 +315,11 @@ def generar_imagen_texto(texto: str) -> Image.Image:
     draw.text((width // 2, height - 20), info, fill='#555', anchor='mm')
 
     return imagen
+
+#---- Aquí terminó la prueba usando Numpy/Pillow  ----#
+#---- Aquí terminó la prueba usando Numpy/Pillow  ----#
+#---- Aquí terminó la prueba usando Numpy/Pillow  ----#
+
 
 
 def guardar_imagen_texto(texto: str) -> str:

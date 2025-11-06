@@ -12,9 +12,7 @@ from .visualizacion import generar_rio_emocional, guardar_imagen_texto
 env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# Almacenamiento de emojis e interpretaciones por sesión
-_emojis_conversacion = []
-_ultima_interpretacion = ""  # Almacena la última interpretación textual del agente
+
 
 
 def extraer_emojis(texto: str) -> list:
@@ -86,10 +84,10 @@ async def crear_visualizacion_rio(emojis: str) -> str:
         # TODO: Guardar imagen como artifact cuando tengamos acceso al context
         # Por ahora solo confirmamos que la imagen se generó
 
-        return f"✨ He generado tu visualización de tú río emocional. La imagen muestra el flujo poético de tus emociones: {emojis}\n\n(Imagen de {len(imagen_bytes):,} bytes generada exitosamente)"
+        return f"✨ He generado tu visualización de tú río emocional. La imagen muestra el flujo poético de tus emociones y pensamientos: {emojis}\n\n(Imagen de {len(imagen_bytes):,} bytes generada exitosamente)"
 
     except Exception as e:
-        return f"⚠️ Hubo un problema al crear la visualización: {str(e)}"
+        return f"⚠️ Hubo un problema al crear la visualización de tú río emocional: {str(e)}"
 
 
 # Tool para guardar la interpretación del agente
@@ -128,7 +126,7 @@ async def crear_imagen_rio_emocional() -> str:
     global _ultima_interpretacion
 
     if not _ultima_interpretacion:
-        return "⚠️ Aún no tengo una interpretación de tu río emocional. Envíame algunos emojis primero para que pueda interpretarlos."
+        return "⚠️ Aún no tengo una interpretación de tu río emocional. Envíame algunos emojis de lo que sientes o piensas primero para que pueda interpretarlos."
 
     try:
         # Generar y guardar la imagen usando la interpretación
@@ -137,16 +135,16 @@ async def crear_imagen_rio_emocional() -> str:
         # Limpiar la interpretación después de usarla
         _ultima_interpretacion = ""
 
-        return f"✨ He creado tu visualización de tú río emocional.\n\n📍 Imagen guardada en: {ruta_imagen}\n\nLa imagen traduce tu río emocional en un trazo visual dinámico usando matemáticas y arte."
+        return f"✨ He creado tu visualización de tú río emocional.\n\n📍 Imagen guardada en: {ruta_imagen}\n\nLa imagen traduce tu río emocional y pensamiento en un trazo visual dinámico usando matemáticas y arte."
 
     except Exception as e:
-        return f"⚠️ Hubo un problema al crear la visualización: {str(e)}"
+        return f"⚠️ Hubo un problema al crear la visualización de tu río emocional: {str(e)}"
 
 
 root_agent = Agent(
     model='gemini-2.5-flash',
     name='diario_intuitivo',
-    description='Eres un asistente que ayuda a identificar patrones del trazo o signo del pensamiento que se percibe en una interacción con el territorio',
+    description='Eres un interprete que ayuda a identificar patrones del trazo,signo del pensamiento o emoción que se percibe en una interacción con el territorio',
     instruction="""Eres un asistente que ayuda a identificar patrones del trazo o signo del pensamiento que se percibe en una interacción con el territorio.
 
 Imagina que a través del input, estamos interpretando el caminar del pensamiento de un río en cuerpo (el usuario) y como se relaciona o siente algo que percibe.

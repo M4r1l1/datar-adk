@@ -6,47 +6,11 @@ import os
 from datetime import datetime
 from pathlib import Path as FilePath
 from PIL import Image, ImageDraw, ImageFont
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.path import Path
 import numpy as np
 import google.genai.types as types
 
 
-# Mapeo de emojis a colores emocionales
-EMOJI_COLORES = {
-    # Alegría y positividad
-    '😊': '#FFD700', '😃': '#FFA500', '😄': '#FFB347', '🥰': '#FF69B4',
-    '😍': '#FF1493', '🤗': '#FF6B9D', '😁': '#FFDB58', '🌟': '#FFD700',
-    '✨': '#E6E6FA', '💖': '#FF69B4', '💕': '#FFB6C1', '❤️': '#DC143C',
-    '🌸': '#FFB7C5', '🌺': '#FF6B9D', '🌼': '#FFDB58',
 
-    # Calma y serenidad
-    '😌': '#87CEEB', '😇': '#B0E0E6', '🌊': '#4682B4', '💙': '#1E90FF',
-    '💚': '#3CB371', '🌿': '#90EE90', '🍃': '#98FB98', '🌱': '#32CD32',
-    '☁️': '#E0E0E0', '🌙': '#F0E68C', '⭐': '#FFFACD',
-
-    # Tristeza y melancolía
-    '😢': '#4169E1', '😭': '#0000CD', '😔': '#6495ED', '💔': '#8B0000',
-    '🌧️': '#778899', '☔': '#696969', '💧': '#ADD8E6',
-
-    # Energía y pasión
-    '🔥': '#FF4500', '⚡': '#FFFF00', '💥': '#FF6347', '🌋': '#DC143C',
-
-    # Naturaleza y crecimiento
-    '🌳': '#228B22', '🌲': '#006400', '🌴': '#00FF00', '🪴': '#3CB371',
-
-    # Misterio y profundidad
-    '🌑': '#2F4F4F', '🖤': '#000000', '💜': '#8B008B', '🔮': '#9370DB',
-
-    # Neutral
-    'default': '#A9A9A9'
-}
-
-
-def obtener_color_emoji(emoji):
-    """Obtiene el color asociado a un emoji"""
-    return EMOJI_COLORES.get(emoji, EMOJI_COLORES['default'])
 
 
 def generar_rio_emocional(emojis_texto: str) -> bytes:

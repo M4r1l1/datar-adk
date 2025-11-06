@@ -13,12 +13,15 @@ from google.adk.sessions import InMemorySession
 import google.genai.types as types
 
 # Importar el agente y funciones
-from datar_a_gente.agent import _internal_agent, crear_visualizacion_rio, extraer_emojis, detectar_comando_imagen
+from datar_a_gente.agent import root_agent, guardar_interpretacion_emocional, crear_imagen_rio_emocional, extraer_emojis, detectar_comando_imagen
 
 app = FastAPI()
 
 # Almacenamiento de emojis por sesión
 _sesiones_emojis = {}
+
+# Almacenamiento de interpretaciones por sesión
+_sesiones_interpretaciones = {}
 
 
 async def procesar_mensaje_con_interceptor(session_id: str, mensaje: str, context):
@@ -35,24 +38,32 @@ async def procesar_mensaje_con_interceptor(session_id: str, mensaje: str, contex
         _sesiones_emojis[session_id].extend(emojis_mensaje)
 
     # Detectar comando de imagen
-    if detectar_comando_imagen(mensaje):
-        if not _sesiones_emojis[session_id] and not emojis_mensaje:
-            return "⚠️ No he detectado emojis en la conversación. Envíame algunos emojis primero y luego usa el comando para crear la imagen."
+    comando_detectado, texto_comando = detectar_comando_imagen(mensaje)
+    if comando_detectado:
+        # Verificar que haya interpretación guardada
+        if session_id not in _sesiones_interpretaciones or not _sesiones_interpretaciones[session_id]:
+            return "⚠️ Aún no tengo una interpretación de tu río emocional. Envíame algunos emojis de lo que sientes o piensas primero."
 
-        # Usar emojis almacenados
-        emojis_para_visualizar = _sesiones_emojis[session_id] if _sesiones_emojis[session_id] else emojis_mensaje
-        emojis_str = " ".join(emojis_para_visualizar)
+        # Guardar la interpretación en la variable global del agente
+        interpretacion = _sesiones_interpretaciones[session_id]
+        await guardar_interpretacion_emocional(interpretacion)
 
-        # Llamar directamente a la herramienta
-        resultado = await crear_visualizacion_rio(context, emojis_str)
+        # Llamar a la herramienta para crear imagen
+        resultado = await crear_imagen_rio_emocional()
 
-        # Limpiar emojis después de crear imagen
+        # Limpiar después de usar
+        _sesiones_interpretaciones[session_id] = ""
         _sesiones_emojis[session_id] = []
 
         return resultado
 
     # Si no es comando, pasar al agente normal
-    response = await _internal_agent.process(context, mensaje)
+    response = await root_agent.process(context, mensaje)
+
+    # Si el mensaje tiene emojis, asumir que la respuesta del agente es la interpretación
+    if emojis_mensaje:
+        _sesiones_interpretaciones[session_id] = response
+
     return response
 
 
